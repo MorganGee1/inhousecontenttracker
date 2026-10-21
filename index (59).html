@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MyCompanion Creators</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one dark working surface. Top bar + tabs, then a hero number with the period chart behind it, then detail tables. */
+:root{
+  --bg:#0c1211; --surface:#121a19; --raise:#18221f; --line:#22302c; --line-soft:#1a2522;
+  --fg:#e7eeeb; --muted:#81938d; --faint:#55655f;
+  --accent:#4fb68a; --accent-ink:#06130e; --chart:#ee6b59; --chart-fill:rgba(238,107,89,.16);
+  --good:#4fb68a; --bad:#e86a6a; --warn:#d9a84a;
+  --c1:#4fb68a; --c2:#5b8def; --c3:#d9a84a; --c4:#a777e3; --c5:#ee6b59; --c6:#3c4a46;
+  --display:"Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 var(--display);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--accent)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Login */
+.login{min-height:100%;display:grid;place-items:center;padding:32px 16px}
+.login-card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:36px 32px;display:flex;flex-direction:column;gap:18px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.01em}
+.logo-mark{width:26px;height:26px;border-radius:50%;border:2px solid var(--accent);display:grid;place-items:center}
+.logo-mark::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.login h1{margin:4px 0 0;font-size:28px;font-weight:600;text-wrap:balance}
+.login p{margin:0;color:var(--muted)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:13px;color:var(--muted)}
+input,select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%;min-width:0}
+input:focus,select:focus{border-color:var(--accent);outline:none}
+.btn{appearance:none;border:1px solid var(--line);background:var(--raise);border-radius:8px;padding:9px 14px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--faint)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--bad)}
+.btn.small{padding:5px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.discord{background:#5865f2;border-color:#5865f2;color:#fff;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 14px}
+.btn.discord:hover{filter:brightness(1.08)}
+.or{display:flex;align-items:center;gap:10px;color:var(--faint);font-size:13px}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.badge{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:9px;background:var(--warn);color:var(--accent-ink);font-size:11px;font-weight:700;padding:0 5px;margin-left:4px}
+.err{color:var(--bad);font-size:14px;min-height:1.2em}
+
+/* Shell */
+.top{display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid var(--line-soft);flex-wrap:wrap}
+.crumb{display:flex;align-items:center;gap:10px;color:var(--muted);min-width:0}
+.crumb b{color:var(--fg);font-weight:600}
+.pill{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--muted)}
+.me{margin-left:auto;display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:50%;background:#1e3a30;color:var(--accent);display:grid;place-items:center;font-weight:600}
+.tabs{display:flex;gap:4px;padding:0 16px;border-bottom:1px solid var(--line-soft);overflow-x:auto}
+.tab{appearance:none;background:none;border:0;padding:14px 12px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tab:hover{color:var(--fg)}
+.tab.on{color:var(--fg);border-bottom-color:var(--accent);font-weight:600}
+main{padding:24px;max-width:1400px;margin:0 auto}
+.demo-banner{background:#2a2414;color:var(--warn);font-size:13px;padding:8px 24px;text-align:center}
+
+/* Overview hero */
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.viewing{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.range-wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0;max-width:100%}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;overflow-x:auto;max-width:100%}
+.seg button{appearance:none;border:0;background:none;color:var(--muted);padding:7px 14px;border-radius:7px;cursor:pointer;white-space:nowrap;font-size:14px}
+.seg button:hover{color:var(--fg)}
+.seg button.on{background:var(--raise);color:var(--fg);font-weight:600;box-shadow:inset 0 0 0 1px var(--line)}
+.range-wrap .span{font-size:13px;color:var(--muted)}
+.who-pick{width:auto;max-width:260px;border-radius:10px;padding:9px 12px;background:var(--surface)}
+.chip-back{appearance:none;border:1px solid var(--line);background:var(--raise);color:var(--fg);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:14px}
+.chip-back:hover{border-color:var(--faint)}
+.you{font-size:15px;color:var(--fg);font-weight:600}
+.hero{position:relative;border-radius:14px;overflow:hidden;min-height:400px;padding:36px 32px 28px;background:var(--surface);border:1px solid var(--line-soft)}
+.hero svg.chart{position:absolute;inset:0;width:100%;height:100%}
+.hero-content{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:end;min-height:336px;pointer-events:none}
+.hero-content *{pointer-events:auto}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.big{font-size:clamp(64px,11vw,148px);line-height:.9;font-weight:700;letter-spacing:-.04em;margin:18px 0 10px;white-space:nowrap}
+.big .cur{color:var(--muted);font-weight:600;font-size:.62em;vertical-align:.18em;margin-right:.04em}
+.big .dec{color:var(--muted);font-size:.42em;font-weight:600;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:14px;display:flex;gap:10px;flex-wrap:wrap}
+.faint{color:var(--faint)}
+.delta.up{color:var(--good)} .delta.down{color:var(--bad)}
+.stats{display:grid;grid-template-columns:auto auto auto;gap:8px 14px;align-items:baseline;font-size:14px;background:rgba(12,18,17,.6);padding:12px 14px;border-radius:10px;backdrop-filter:blur(4px)}
+.stats .v{text-align:right;font-weight:500}
+.stats .d{text-align:right;font-size:12px;min-width:52px}
+.stats .k{color:var(--muted)}
+.stats .brb{color:var(--good)}
+.stats-h{grid-column:1/-1;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.tip{position:absolute;pointer-events:none;background:var(--raise);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;white-space:nowrap;transform:translate(-50%,-110%)}
+
+/* Share bar */
+.share{margin-top:22px}
+.share-h{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-bottom:10px}
+.share-h b{color:var(--fg);letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+.bar{display:flex;gap:3px;height:6px;border-radius:3px;overflow:hidden;background:var(--line-soft)}
+.bar span{display:block;height:100%}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px 18px;margin-top:12px}
+.legend div{min-width:0}
+.legend .n{display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.legend .n i{width:9px;height:9px;border-radius:2px;flex:none}
+.legend .m{font-size:13px;color:var(--muted)}
+
+/* Panels + tables */
+.panel{margin-top:22px;background:var(--surface);border:1px solid var(--line-soft);border-radius:14px}
+.panel-h{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 20px;border-bottom:1px solid var(--line-soft)}
+.panel-h h2{margin:0;font-size:17px;font-weight:600}
+.panel-b{padding:16px 20px}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:left;padding:10px 20px;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+td{padding:12px 20px;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+th.r,td.r{text-align:right}
+tr.click{cursor:pointer} tr.click:hover td{background:var(--raise)}
+.who{display:flex;align-items:center;gap:10px}
+.dot{width:9px;height:9px;border-radius:2px;flex:none}
+.tag{font-size:12px;border-radius:999px;padding:2px 9px;background:var(--raise);color:var(--muted);border:1px solid var(--line)}
+.tag.bio{color:#7fd3ac} .tag.comments{color:#8fb0f5} .tag.manychat{color:#e3bf74} .tag.other{color:var(--muted)}
+.tag.off{color:var(--bad)}
+.empty{padding:36px 20px;text-align:center;color:var(--muted)}
+.linkurl{font-family:var(--mono);font-size:13px;color:var(--fg)}
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end}
+.new-link{margin-top:16px;padding:14px;border:1px dashed var(--accent);border-radius:10px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.new-link .linkurl{font-size:15px;word-break:break-all}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:22px}
+.grid2 .panel{margin-top:0}
+.note{color:var(--muted);font-size:13px;margin:8px 0 0}
+.status{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.status::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.status.ok{color:var(--good)} .status.no{color:var(--warn)}
+.log{font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px;max-height:180px;overflow:auto}
+.log .e{color:var(--bad)}
+.inline-confirm{display:inline-flex;gap:6px;align-items:center}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:14px;z-index:20;max-width:calc(100% - 32px)}
+.loading{padding:80px 16px;text-align:center;color:var(--muted)}
+
+/* Public pages: landing, privacy policy, sign in */
+.pub{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+.pub-top{display:flex;align-items:center;gap:18px;padding:16px 24px;border-bottom:1px solid var(--line-soft)}
+.pub-top .brand{display:flex;align-items:center;gap:10px;font-weight:600;color:var(--fg);text-decoration:none;white-space:nowrap}
+.pub-nav{margin-left:auto;display:flex;align-items:center;gap:20px}
+.pub-nav a{color:var(--muted);text-decoration:none;font-size:14px;white-space:nowrap}
+.pub-nav a:hover{color:var(--fg)}
+.pub-nav a.btn{color:var(--accent-ink);font-weight:600;font-size:14px}
+.pub-nav a.btn:hover{color:var(--accent-ink)}
+.pub main{flex:1;padding:0;max-width:none}
+.pub .login{min-height:0;padding:72px 16px}
+.pub-foot{border-top:1px solid var(--line-soft);padding:22px 24px;color:var(--muted);font-size:13px;display:flex;gap:10px 24px;flex-wrap:wrap;justify-content:space-between}
+.pub-foot a{color:var(--muted)}
+.pub-foot a:hover{color:var(--fg)}
+
+.landing{max-width:1100px;margin:0 auto;padding:80px 24px 64px}
+.landing h1{margin:0;font-size:clamp(42px,6.5vw,78px);line-height:.98;letter-spacing:-.035em;font-weight:700;max-width:13ch;text-wrap:balance}
+.landing .lede{margin:24px 0 0;font-size:19px;line-height:1.55;color:var(--muted);max-width:58ch}
+.landing .cta{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:32px}
+.landing .cta .btn{text-decoration:none;display:inline-flex;align-items:center;gap:10px;padding:12px 18px;font-size:15px}
+.landing .cta a.quiet{color:var(--muted);text-decoration:none;font-size:14px}
+.landing .cta a.quiet:hover{color:var(--fg)}
+.landing h2{margin:88px 0 18px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px}
+.step{background:var(--surface);border:1px solid var(--line-soft);border-radius:14px;padding:22px 22px 24px}
+.step .n{font-family:var(--mono);font-size:13px;color:var(--accent)}
+.step h3{margin:12px 0 6px;font-size:18px;font-weight:600;letter-spacing:-.01em}
+.step p{margin:0;color:var(--muted);font-size:14.5px;line-height:1.55}
+.landing .prose{max-width:62ch;color:var(--muted);font-size:16px;line-height:1.6}
+.landing .prose p{margin:0 0 14px}
+.landing .prose strong{color:var(--fg);font-weight:600}
+
+.doc{max-width:760px;margin:0 auto;padding:64px 24px 96px;font-size:16.5px;line-height:1.65;color:#c9d3cf}
+.doc h1{margin:0;font-size:clamp(34px,5vw,46px);line-height:1.1;letter-spacing:-.025em;font-weight:700;color:var(--fg)}
+.doc .upd{margin:14px 0 0;color:var(--muted);font-size:14px}
+.doc .lead{margin:28px 0 0;font-size:18.5px;line-height:1.6}
+.doc .box{margin:40px 0 0;padding:24px 26px 22px;background:var(--surface);border:1px solid var(--line-soft);border-radius:14px}
+.doc .box h2{margin:0 0 12px;font-size:16px;color:var(--accent)}
+.doc .box ul{margin:0;padding:0 0 0 20px}
+.doc .box li{margin:0 0 8px;color:var(--fg)} .doc .box li:last-child{margin:0}
+.doc h2{margin:56px 0 14px;font-size:23px;line-height:1.25;letter-spacing:-.01em;font-weight:600;color:var(--fg)}
+.doc p{margin:0 0 16px} .doc strong{color:var(--fg);font-weight:600}
+.doc ul.plain{margin:0 0 16px;padding:0 0 0 20px} .doc ul.plain li{margin:0 0 8px}
+.doc .data-wrap{margin:4px 0 18px;border:1px solid var(--line-soft);border-radius:14px;overflow:hidden}
+.doc table{font-size:15px;line-height:1.5}
+.doc th{padding:12px 18px;background:var(--surface);text-transform:none;letter-spacing:0;font-size:13px}
+.doc td{padding:16px 18px;white-space:normal;vertical-align:top;border-top:1px solid var(--line-soft);border-bottom:0}
+.doc td:first-child{width:44%} .doc td:nth-child(2){width:24%}
+.doc .name{display:block;margin-bottom:4px;color:var(--fg);font-weight:600}
+.doc .addr{margin:4px 0 18px;padding:20px 26px;background:var(--surface);border:1px solid var(--line-soft);border-radius:14px;color:var(--fg);line-height:1.6}
+@media (max-width:640px){
+  .doc{padding:44px 20px 72px}
+  .doc table,.doc tbody,.doc tr,.doc td{display:block;width:100%}
+  .doc thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .doc tr{padding:16px 18px;border-top:1px solid var(--line-soft)} .doc tr:first-child{border-top:0}
+  .doc td{padding:0;border-top:0} .doc td:first-child,.doc td:nth-child(2){width:100%}
+  .doc td[data-label]{margin-top:10px}
+  .doc td[data-label]::before{content:attr(data-label);display:block;color:var(--muted);font-size:13px;font-weight:600}
+  .landing{padding:56px 20px 48px}
+  .landing h2{margin-top:64px}
+  .pub-nav{gap:14px}
+}
+
+@media (max-width:760px){
+  main{padding:16px}
+  .top{padding:12px 16px}
+  .hero{padding:24px 18px;min-height:0}
+  .hero-content{grid-template-columns:1fr;min-height:0}
+  .stats{justify-self:stretch}
+  .crumb .sep,.crumb .brand{display:none}
+}
+@media (prefers-reduced-motion:no-preference){
+  .hero path.line{stroke-dasharray:3000;stroke-dashoffset:3000;animation:draw 1.1s ease-out forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">Loading</div></div>
+<script src="/api/config" onerror="window.TRACKER_CONFIG=null"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(() => {
+'use strict';
+const CFG = Object.assign({appName:'MyCompanion Creators',brandName:'MyCompanion UK',currency:'GBP'}, window.TRACKER_CONFIG || {});
+const DEMO = /[?&]demo\b/.test(location.search);
+const CONFIG_PROBLEM = DEMO ? null : !window.TRACKER_CONFIG ? 'The site can\'t load its settings (/api/config). In GitHub, index.html, package.json, vercel.json and the api folder must be at the top of the repo, not inside another folder.'
+  : (CFG.missing && CFG.missing.length) ? `Vercel is missing: ${CFG.missing.join(', ')}. Add ${CFG.missing.length>1?'them':'it'} in Vercel > Settings > Environment Variables (exact names), then Deployments > ⋯ > Redeploy.` : null;
+const EMAIL = u => `${u.trim().toLowerCase()}@users.tracker.internal`;
+const PLACEMENTS = {bio:'Bio', comments:'Comments', manychat:'ManyChat', other:'Other'};
+const COLORS = ['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)'];
+const app = document.getElementById('app');
+
+/* ---------- helpers ---------- */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = (n, dp=2) => new Intl.NumberFormat('en-GB',{style:'currency',currency:CFG.currency,minimumFractionDigits:dp,maximumFractionDigits:dp}).format(n||0);
+const int = n => new Intl.NumberFormat('en-GB').format(Math.round(n||0));
+const pct = n => (isFinite(n) ? (n*100).toFixed(2) : '0.00') + '%';
+const curSym = (0).toLocaleString('en-GB',{style:'currency',currency:CFG.currency,minimumFractionDigits:0}).replace(/[\d\s.,]/g,'');
+const iso = d => { const z = new Date(d.getTime() - d.getTimezoneOffset()*60000); return z.toISOString().slice(0,10); };
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const fmtDay = s => new Date(s+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+let toastT;
+function toast(msg){ let t = document.querySelector('.toast'); if(!t){ t = document.createElement('div'); t.className='toast'; document.body.appendChild(t);} t.textContent = msg; clearTimeout(toastT); toastT = setTimeout(()=>t.remove(), 3500); }
+async function copy(text, btn){
+  try { await navigator.clipboard.writeText(text); toast('Link copied'); }
+  catch { const r = document.createRange(); const el = btn?.closest('.new-link,tr')?.querySelector('.linkurl'); if(el){ r.selectNodeContents(el); const s=getSelection(); s.removeAllRanges(); s.addRange(r);} toast('Press Cmd+C to copy'); }
+}
+
+/* ---------- the Amazon link a creator posts ---------- */
+// Product's Attribution tag + this link's own ids, so Amazon reports each link separately
+function amazonUrl(l){
+  const prod = S.data.products.find(p=>p.id===l.product_id); if(!prod) return '';
+  try {
+    const u = new URL(prod.tag_url);
+    u.searchParams.set('aa_campaignid', (S.data.users.find(x=>x.id===l.creator_id)?.code) || 'creator');
+    u.searchParams.set('aa_adgroupid', l.placement);
+    u.searchParams.set('aa_creativeid', l.code);
+    return u.toString();
+  } catch { return prod.tag_url; }
+}
+
+/* ---------- periods ---------- */
+function period(key){
+  const today = new Date(); today.setHours(12,0,0,0);
+  let start, end = today, prevStart, prevEnd, label, cmp;
+  if (key === 'last_month'){
+    start = new Date(today.getFullYear(), today.getMonth()-1, 1, 12); end = new Date(today.getFullYear(), today.getMonth(), 0, 12);
+    prevStart = new Date(today.getFullYear(), today.getMonth()-2, 1, 12); prevEnd = new Date(today.getFullYear(), today.getMonth()-1, 0, 12);
+    label = start.toLocaleDateString('en-GB',{month:'long'}); cmp = 'vs the month before';
+  } else if (key === '7d' || key === '30d'){
+    const n = key === '7d' ? 7 : 30; start = addDays(today, -(n-1)); prevEnd = addDays(start,-1); prevStart = addDays(prevEnd, -(n-1));
+    label = `Last ${n} days`; cmp = `vs the ${n} days before`;
+  } else if (key === 'all'){
+    start = new Date(2025,0,1,12); prevStart = prevEnd = null; label = 'All time'; cmp = '';
+  } else {
+    start = new Date(today.getFullYear(), today.getMonth(), 1, 12);
+    prevStart = new Date(today.getFullYear(), today.getMonth()-1, 1, 12);
+    prevEnd = addDays(prevStart, today.getDate()-1);
+    label = 'This month'; cmp = 'vs same days last month';
+  }
+  return {key, start:iso(start), end:iso(end), prevStart: prevStart && iso(prevStart), prevEnd: prevEnd && iso(prevEnd), label, cmp,
+    span: `${start.getDate()} ${start.toLocaleDateString('en-GB',{month:'short'})} to ${end.getDate()} ${end.toLocaleDateString('en-GB',{month:'short'})}`};
+}
+
+/* ---------- data layer (Supabase, or in-memory demo) ---------- */
+let sb = null;
+const Real = {
+  async session(){ const {data} = await sb.auth.getSession(); return data.session; },
+  async login(u,p){ const {error} = await sb.auth.signInWithPassword({email:EMAIL(u), password:p}); if(error) throw new Error('Wrong username or password'); },
+  async logout(){ await sb.auth.signOut(); },
+  async discord(){ const {error} = await sb.auth.signInWithOAuth({provider:'discord', options:{scopes:'identify guilds', redirectTo: location.origin + '/'}}); if(error) throw error; },
+  async join(){ const s = await Real.session(); const r = await fetch('/api/join',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${s.access_token}`},body:JSON.stringify({provider_token:s.provider_token||null})}); const j = await r.json().catch(()=>({error:`Server error (${r.status}). Check the Vercel settings.`})); if(!r.ok) throw new Error(j.error); return j.user; },
+  async me(){ const {data:{user}} = await sb.auth.getUser(); if(!user) return null; const {data} = await sb.from('app_users').select('*').eq('id', user.id).single(); return data; },
+  async load(from){
+    const q = (t, sel) => sb.from(t).select(sel);
+    const [u,p,l,s] = await Promise.all([
+      q('app_users','*').order('display_name'), q('products','*').order('created_at'), q('links','*').order('created_at',{ascending:false}),
+      q('sales_daily','link_id,day,amazon_clicks,purchases,units,sales').gte('day', from).limit(50000)]);
+    for (const r of [u,p,l,s]) if (r.error) throw r.error;
+    const me = u.data.find(x => x.id === (S.me && S.me.id));
+    if (me && me.role === 'manager') {
+      const b = await sb.rpc('manager_bonus', {p_from: from});
+      if (!b.error) { const m = new Map(b.data.map(r=>[r.link_id+'|'+r.day, +r.brb])); s.data.forEach(r => r.brb = m.get(r.link_id+'|'+r.day) || 0); }
+    }
+    const last = await sb.from('sales_daily').select('day').order('day',{ascending:false}).limit(1);
+    return {users:u.data, products:p.data, links:l.data, sales:s.data, lastDay: last.data?.[0]?.day || null};
+  },
+  async createLink(row){ const {data,error} = await sb.from('links').insert(row).select().single(); if(error) throw error; return data; },
+  async deleteLink(id){ const {error} = await sb.from('links').update({deleted_at:new Date().toISOString()}).eq('id',id); if(error) throw error; },
+  async addProduct(row){ const {error} = await sb.from('products').insert(row); if(error) throw error; },
+  async updateProduct(id,patch){ const {error} = await sb.from('products').update(patch).eq('id',id); if(error) throw error; },
+  async importSales(rows){ const {error} = await sb.from('sales_daily').upsert(rows); if(error) throw error; },
+  async syncLog(){ const {data} = await sb.from('sync_log').select('*').order('ran_at',{ascending:false}).limit(15); return data||[]; },
+  async api(path, body){
+    const s = await Real.session();
+    const r = await fetch(path, {method: body ? 'POST':'GET', headers:{'Content-Type':'application/json', Authorization:`Bearer ${s?.access_token}`}, body: body ? JSON.stringify(body) : undefined});
+    const j = await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error || `Server error (${r.status}). Check Vercel > Deployments > Logs.`); return j;
+  },
+};
+
+const Demo = (() => {
+  // Example data so the layout can be judged before Supabase is connected. Not real figures.
+  const rnd = (s => () => (s = (s*16807) % 2147483647) / 2147483647)(42);
+  const names = [['zzkeizza','Keizza'],['frankie.t','Frankie T'],['thomas.p','Thomas Pranzo'],['venelin','Venelin'],['steaven','Steaven'],['millie.r','Millie R'],['josh.k','Josh K'],['ana.dogs','Ana']];
+  const users = [{id:'m1',username:'morgan',display_name:'Morgan',role:'manager',code:'morgan',active:true}]
+    .concat(names.map(([u,n],i)=>({id:'c'+i,username:u,display_name:n,role:'creator',code:u.replace(/\W/g,''),active:i!==7,pending:false})));
+  const products = [{id:'p1',name:'Hip & Joint Chews',asin:'B0EXAMPLE1',tag_url:'https://www.amazon.co.uk/dp/B0EXAMPLE1?maas=example',active:true},
+                    {id:'p2',name:'Calming Chews',asin:'B0EXAMPLE2',tag_url:'https://www.amazon.co.uk/dp/B0EXAMPLE2?maas=example',active:true}];
+  const links = []; const pl = Object.keys(PLACEMENTS);
+  users.filter(u=>u.role==='creator').forEach((u,i)=>{ const n = 2 + (i%3); for(let k=0;k<n;k++) links.push({id:`l${i}_${k}`, code:(u.code.slice(0,3)+k+'x'+i).padEnd(7,'q'), creator_id:u.id, product_id: k%2?'p2':'p1', placement: pl[k%3], label: ['Main bio link','Pinned comment','ManyChat DM','Story'][k%4], deleted_at:null, created_at:'2026-08-0'+(1+k)+'T10:00:00Z'}); });
+  const weight = {c0:3.2,c1:2.9,c2:1.5,c3:1.4,c4:.8,c5:.5,c6:.35,c7:.2};
+  const sales=[], clicks=[]; const today = new Date(); today.setHours(12);
+  for(let d=75; d>=0; d--){ const day = iso(addDays(today,-d));
+    links.forEach(l=>{ const w = weight[l.creator_id]||.3; const wave = 1 + .5*Math.sin((75-d)/6);
+      if(d===0) return; const cl = Math.round(w*wave*(6+rnd()*14)); const pur = rnd() < .12*w*wave ? 1 + (rnd()<.2?1:0) : 0;
+      const units = pur ? pur + (rnd()<.1?1:0) : 0; const s = units*19.99; sales.push({link_id:l.id, day, amazon_clicks:cl, purchases:pur, units, sales:+s.toFixed(2), brb:+(s*.1).toFixed(2)}); }); }
+  let me = users[0], inn = false;
+  return {
+    async session(){ return inn ? {} : null; }, async login(u){ me = users.find(x=>x.username===u.trim().toLowerCase()) || users[0]; inn = true; }, async logout(){ inn = false; }, async me(){ return me; }, async discord(){ inn = true; me = users.find(u=>u.id==='c0'); boot(); }, async join(){ return me; },
+    setMe(id){ me = users.find(u=>u.id===id); inn = true; },
+    async load(from){ const mine = me.role==='manager' ? null : new Set(links.filter(l=>l.creator_id===me.id).map(l=>l.id));
+      const vis = r => !mine || mine.has(r.link_id);
+      return {users: me.role==='manager'?users:[me], products, links: links.filter(l=>me.role==='manager'||l.creator_id===me.id),
+        sales: sales.filter(r=>r.day>=from && vis(r)), lastDay: iso(addDays(new Date(),-1))}; },
+    async createLink(row){ const l = {...row, id:'n'+Date.now(), code: Math.random().toString(36).slice(2,9), deleted_at:null, created_at:new Date().toISOString()}; links.unshift(l); return l; },
+    async deleteLink(id){ links.find(l=>l.id===id).deleted_at = new Date().toISOString(); },
+    async addProduct(row){ products.push({...row, id:'p'+Date.now(), active:true}); },
+    async updateProduct(id,patch){ Object.assign(products.find(p=>p.id===id), patch); },
+    async importSales(rows){ rows.forEach(r=>{ const i = sales.findIndex(s=>s.link_id===r.link_id&&s.day===r.day); i>=0 ? sales[i]=r : sales.push(r); }); },
+    async syncLog(){ return [{ran_at:new Date().toISOString(), status:'ok', detail:'Example: 41 link-days updated over 14 days'}]; },
+    async api(path, body){
+      if(path==='/api/amazon-status') return {keysSet:false, connected:false, profile:null, lastSync:null};
+      if(body?.action==='create'){ users.push({id:'c'+Date.now(), username:body.username, display_name:body.display_name||body.username, role:body.role, code:body.username.replace(/\W/g,''), active:true}); return {ok:true}; }
+      if(body?.action==='set_active'){ Object.assign(users.find(u=>u.id===body.id),{active:body.active,pending:false}); return {ok:true}; }
+      if(body?.action==='set_role'){ users.find(u=>u.id===body.id).role = body.role; return {ok:true}; }
+      if(body?.action==='reject'){ users.splice(users.findIndex(u=>u.id===body.id),1); return {ok:true}; }
+      if(body?.action==='reset_password') return {ok:true};
+      throw new Error('Not available in the preview. Connect Supabase and Amazon to use this.');
+    },
+  };
+})();
+const DB = DEMO ? Demo : Real;
+
+/* ---------- state ---------- */
+const S = { me:null, data:null, range:'month', tab:'overview', viewCreator:'', lastLink:null };
+const isMgr = () => S.me?.role === 'manager';
+
+/* ---------- public pages: landing, privacy, sign in ---------- */
+// Routes: "#privacy" / "?page=privacy" -> privacy policy (works signed in or out), "#signin" -> sign-in card, anything else -> landing (signed out) or the app (signed in).
+const PUBLIC_PAGES = ['privacy','signin'];
+function route(){
+  const h = location.hash.replace('#','').split('?')[0];
+  if (PUBLIC_PAGES.includes(h)) return h;
+  const q = new URLSearchParams(location.search).get('page');
+  return PUBLIC_PAGES.includes(q) ? q : '';
+}
+
+const DISCORD_SVG = `<svg width="20" height="15" viewBox="0 0 71 55" aria-hidden="true"><path fill="currentColor" d="M60.1 4.9A58.5 58.5 0 0 0 45.6.4a40 40 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0A39 39 0 0 0 25.8.4 58.4 58.4 0 0 0 11.2 4.9C2 18.6-.5 32 .7 45.2a58.9 58.9 0 0 0 18 9.1 43.6 43.6 0 0 0 3.8-6.2 38.3 38.3 0 0 1-6-2.9l1.5-1.1a42 42 0 0 0 36 0l1.5 1.1a38.3 38.3 0 0 1-6 2.9 43.4 43.4 0 0 0 3.8 6.2 58.7 58.7 0 0 0 18-9.1c1.4-15.3-2.5-28.6-10.4-40.3ZM23.7 37.1c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2 6.5 3.3 6.4 7.2c0 4-2.8 7.2-6.4 7.2Zm23.6 0c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2 6.5 3.3 6.4 7.2c0 4-2.8 7.2-6.4 7.2Z"/></svg>`;
+
+const LANDING_HTML = () => `<div class="landing">
+  <h1>See what your links actually sell.</h1>
+  <p class="lede">${esc(CFG.appName)} gives every creator in the ${esc(CFG.brandName)} programme their own Amazon tracking links, then shows the clicks, purchases and sales each one brings in, day by day.</p>
+  <div class="cta">
+    <a class="btn discord" href="/?page=signin">${DISCORD_SVG}Sign in with Discord</a>
+    <a class="quiet" href="/?page=privacy">Read the privacy policy</a>
+  </div>
+
+  <h2>How it works</h2>
+  <div class="steps">
+    <div class="step"><div class="n">01</div><h3>Sign in with Discord</h3><p>Use the Discord account you're in our server with. Your manager approves you once and you're in.</p></div>
+    <div class="step"><div class="n">02</div><h3>Make your links</h3><p>One tracking link for each place you post: bio, pinned comment, ManyChat. Each link is an Amazon Attribution tag, so Amazon does the counting.</p></div>
+    <div class="step"><div class="n">03</div><h3>Watch the numbers</h3><p>Clicks, purchases, units and sales for every link, by day. Switch between this month, last month, 7 days, 30 days or all time.</p></div>
+  </div>
+
+  <h2>Who sees what</h2>
+  <div class="steps">
+    <div class="step"><h3>Creators</h3><p>Your own links and your own results. Nothing else.</p></div>
+    <div class="step"><h3>The ${esc(CFG.brandName)} team</h3><p>Every creator's links and results, plus creator approvals, products and the Amazon connection.</p></div>
+  </div>
+
+  <h2>Where the numbers come from</h2>
+  <div class="prose">
+    <p>Sales and click data comes from <strong>Amazon Attribution</strong> reports for the ${esc(CFG.brandName)} Amazon Ads account, pulled in automatically each day and matched to the creator link each line belongs to.</p>
+    <p>Those reports hold campaign totals only. Nothing in them identifies a shopper, and the links creators share go straight to Amazon without passing through this site.</p>
+  </div>
+</div>`;
+
+const PRIVACY_HTML = `<div class="doc">
+  <h1>Privacy policy</h1>
+  <p class="upd">Last updated 15 October 2026</p>
+  <p class="lead">MyCompanion Creators is a private tool for the creators who promote MyCompanion products and the team that runs the creator programme. This page explains what the tool collects, where it comes from, and what you can do about it.</p>
+
+  <div class="box"><h2>The short version</h2><ul>
+    <li>You sign in with Discord. We keep your Discord name and picture so we know who you are.</li>
+    <li>We store the tracking links you make and the results Amazon reports for them.</li>
+    <li>From Amazon we read campaign totals only. Nothing in them identifies a shopper.</li>
+    <li>We don't sell data and we don't use it to advertise to anyone.</li>
+  </ul></div>
+
+  <h2>Who runs this tool</h2>
+  <p>MyCompanion Creators is run by <strong>My Companion Pet Food Limited</strong>, a company registered in England and Wales under company number 14251382. Our registered office is Unit 2g Redwither Tower, Redwither Business Park, Wrexham, Wales, LL13 9XT.</p>
+  <p>We decide how the data described on this page is used, which makes us the data controller under UK data protection law.</p>
+
+  <h2>What we collect</h2>
+  <div class="data-wrap"><table>
+    <thead><tr><th>What</th><th>Where it comes from</th><th>Why we need it</th></tr></thead>
+    <tbody>
+      <tr><td><span class="name">Your Discord account</span>Your Discord user ID, username, display name and profile picture. We never see your Discord password or your email address.</td><td data-label="Where it comes from">Discord, when you sign in</td><td data-label="Why we need it">To sign you in and show our team who each account belongs to.</td></tr>
+      <tr><td><span class="name">Your links</span>The tracking links you create, the social account each one is for, and where you post it: bio, comments or ManyChat.</td><td data-label="Where it comes from">You</td><td data-label="Why we need it">To build your links and tell them apart.</td></tr>
+      <tr><td><span class="name">Your results</span>Clicks, purchases, units sold and sales for each of your links, by day.</td><td data-label="Where it comes from">Amazon Attribution reports</td><td data-label="Why we need it">To show you and our team how each link is performing.</td></tr>
+      <tr><td><span class="name">Technical details</span>Your IP address, browser type and the time of each request. The tool also uses your browser's storage to keep you signed in.</td><td data-label="Where it comes from">Your browser</td><td data-label="Why we need it">To deliver the pages and keep the tool secure.</td></tr>
+    </tbody>
+  </table></div>
+  <p>The tool sets no advertising cookies.</p>
+
+  <h2>What we get from Amazon</h2>
+  <p>A manager on our team connects the tool to the MyCompanion Amazon Ads account using Login with Amazon. Once connected, the tool reads Amazon Attribution tags and reports for our own account. That is all it uses the connection for.</p>
+  <p>Those reports hold totals such as clicks, detail page views, add to carts, purchases, units sold and sales, broken down by campaign, ad group, creative and day.</p>
+  <p><strong>They contain nothing that identifies a shopper.</strong> No names, email addresses, delivery addresses, order numbers or payment details. Amazon doesn't send us that information and we don't ask for it.</p>
+  <p>We match each line of a report to the creator link it belongs to, so our team can see how the programme is doing and each creator can see their own results. We don't sell Amazon data, we don't use it to advertise to anyone, and we don't pass it to anyone except the creator whose link it relates to and the service providers listed below.</p>
+  <p>To fetch reports each day, the tool stores the access tokens Amazon issues, along with the details of our Amazon Ads account that it needs to request them. The Amazon account holder can remove the tool's access at any time from their Amazon account settings.</p>
+
+  <h2>If you clicked a creator's link</h2>
+  <p>The links our creators share go straight to Amazon. You don't pass through this site, and we don't collect anything about you. What Amazon collects when you shop is covered by Amazon's own privacy notice.</p>
+
+  <h2>Who can see what</h2>
+  <ul class="plain">
+    <li><strong>Creators</strong> see their own links and their own results. They can't see anyone else's.</li>
+    <li><strong>The MyCompanion team</strong> that runs the creator programme sees every creator's links and results.</li>
+  </ul>
+  <p>You have to sign in to see anything, and the connection to the site and its database is encrypted. Beyond our team and our creators, only the service providers below handle the data, and only to run the tool.</p>
+
+  <h2>Who helps us run it</h2>
+  <ul class="plain">
+    <li><strong>Discord</strong> signs you in.</li>
+    <li><strong>Supabase</strong> runs the database and keeps you signed in.</li>
+    <li><strong>Vercel</strong> hosts the site.</li>
+    <li><strong>Amazon</strong> provides Login with Amazon and the Amazon Ads reports.</li>
+  </ul>
+  <p>Some of these companies are based outside the UK, mainly in the United States, so your data may be processed there under their own data protection terms.</p>
+
+  <h2>Why we're allowed to use it</h2>
+  <p>We use this data because we need it to run the creator programme you've joined and to measure how it performs. In legal terms, that is our legitimate interest in running the programme and, where you have an agreement with us, carrying that agreement out.</p>
+
+  <h2>How long we keep it</h2>
+  <p>We keep your account and links for as long as you're part of the creator programme. Ask us at any time and we'll delete your account details.</p>
+  <p>Sales reports are business records for the brand, so we keep those for as long as we need them to run the programme.</p>
+
+  <h2>Your rights</h2>
+  <p>Under UK data protection law you can ask us for a copy of your data, ask us to correct or delete it, and object to or ask us to limit how we use it. To do any of these, contact us using the details below. We'll reply within one month.</p>
+  <p>If you're unhappy with how we've handled your data, you can complain to the <a href="https://ico.org.uk/make-a-complaint/" rel="noopener" target="_blank">Information Commissioner's Office</a>.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>If we change how the tool uses data, we'll update this page and the date at the top.</p>
+
+  <h2>Contact us</h2>
+  <p>Write to us at our registered office:</p>
+  <div class="addr">My Companion Pet Food Limited<br>Unit 2g Redwither Tower<br>Redwither Business Park<br>Wrexham, Wales<br>LL13 9XT</div>
+  <p>If you're one of our creators, you can also ask the person at MyCompanion who manages your account.</p>
+</div>`;
+
+const LOGIN_CARD = err => `<div class="login"><div class="login-card">
+  <div class="logo"><span class="logo-mark"></span>${esc(CFG.appName)}</div>
+  <div><h1>Sign in</h1><p>Your Amazon UK sales. Sign in with the Discord account you use in our server.</p></div>
+  <button type="button" class="btn discord" id="discordBtn">${DISCORD_SVG}Sign in with Discord</button>
+  <div class="err" id="loginErr">${esc(err)}</div>
+  ${DEMO ? `<p class="note">Preview with example data. Pick a view:</p><div style="display:flex;gap:8px"><button type="button" class="btn" data-demo="m1">Manager view</button><button type="button" class="btn" data-demo="c0">Creator view</button></div>` : ''}
+</div></div>`;
+
+function renderPublic(page, err=''){
+  const titles = {privacy:'Privacy policy', signin:'Sign in'};
+  document.title = titles[page] ? `${titles[page]} | ${CFG.appName}` : CFG.appName;
+  app.innerHTML = `<div class="pub">
+    <header class="pub-top">
+      <a class="brand" href="/"><span class="logo-mark"></span>${esc(CFG.appName)}</a>
+      <nav class="pub-nav"><a href="/?page=privacy">Privacy policy</a><a class="btn primary" href="/?page=signin">Sign in</a></nav>
+    </header>
+    <main>${page==='privacy' ? PRIVACY_HTML : page==='signin' ? LOGIN_CARD(err) : LANDING_HTML()}</main>
+    <footer class="pub-foot"><span>${esc(CFG.appName)} is run by My Companion Pet Food Limited, company number 14251382.</span><a href="/?page=privacy">Privacy policy</a></footer>
+  </div>`;
+  if (page==='privacy' || page==='signin') window.scrollTo(0,0);
+  const btn = document.getElementById('discordBtn');
+  if (btn) btn.onclick = async () => { btn.disabled = true; try { await DB.discord(); } catch(x){ document.getElementById('loginErr').textContent = x.message; btn.disabled = false; } };
+  app.querySelectorAll('[data-demo]').forEach(b => b.onclick = async () => { Demo.setMe(b.dataset.demo); location.hash = ''; await boot(); });
+}
+const renderLogin = (err='') => renderPublic('signin', err);
+const renderHome = () => renderPublic('home');
+
+function renderPending(){
+  app.innerHTML = `<div class="login"><div class="login-card">
+    <div class="logo"><span class="logo-mark"></span>${esc(CFG.appName)}</div>
+    <div><h1>You're on the list</h1><p>Hi ${esc(S.me.display_name)}. Your manager needs to approve you before you can make links. Check back once they've told you you're in.</p></div>
+    <div style="display:flex;gap:8px"><button class="btn primary" id="recheck">Check again</button><button class="btn" id="out">Sign out</button></div>
+  </div></div>`;
+  document.getElementById('recheck').onclick = () => boot();
+  document.getElementById('out').onclick = async () => { await DB.logout(); S.me=null; renderHome(); };
+}
+
+async function boot(){
+  const page = route();
+  if (page === 'privacy') return renderPublic('privacy');   // public, needs no config or sign-in
+  if (CONFIG_PROBLEM) { app.innerHTML = `<div class="login"><div class="login-card"><div class="logo"><span class="logo-mark"></span>${esc(CFG.appName)}</div><div><h1>Setup isn't finished</h1><p>${esc(CONFIG_PROBLEM)}</p></div></div></div>`; return; }
+  try {
+    if (!DEMO && !sb) sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey);
+    const s = await DB.session(); if (!s) return page === 'signin' ? renderLogin() : renderHome();
+    if (page === 'signin') history.replaceState(null,'',location.pathname);
+    S.me = await DB.me();
+    if (!S.me) { try { S.me = await DB.join(); } catch(x){ await DB.logout(); return renderLogin(x.message); } }
+    if (S.me.pending) return renderPending();
+    if (!S.me.active) { await DB.logout(); return renderLogin('This login has been switched off. Ask your manager.'); }
+    const h = location.hash.replace('#','').split('?');
+    const allowed = isMgr() ? ['overview','creators','links','settings'] : ['overview','links'];
+    S.tab = allowed.includes(h[0]) ? h[0] : 'overview';
+    const amz = new URLSearchParams(h[1]||'').get('amazon'); if (amz) setTimeout(()=>toast(amz==='connected' ? 'Amazon connected' : amz), 300);
+    await reload();
+  } catch(x){ app.innerHTML = `<div class="loading">Could not load: ${esc(x.message)}</div>`; }
+}
+
+async function reload(){
+  const p = period(S.range);
+  S.data = await DB.load(p.prevStart || p.start);
+  render();
+}
+
+/* ---------- aggregation ---------- */
+function linksFor(creatorId){ return S.data.links.filter(l => !creatorId || l.creator_id === creatorId); }
+function totals(linkIds, from, to){
+  const t = {sales:0,purchases:0,units:0,brb:0,clicks:0};
+  if (!from) return t;
+  for (const r of S.data.sales) if (linkIds.has(r.link_id) && r.day>=from && r.day<=to){ t.sales+=+r.sales; t.purchases+=r.purchases; t.units+=r.units; t.brb+=+r.brb; t.clicks+=r.amazon_clicks||0; }
+  t.conv = t.clicks ? t.purchases/t.clicks : 0;
+  return t;
+}
+function dailySales(linkIds, from, to){
+  const m = new Map(); for (let d=new Date(from+'T12:00:00'); iso(d)<=to; d=addDays(d,1)) m.set(iso(d),0);
+  for (const r of S.data.sales) if (linkIds.has(r.link_id) && m.has(r.day)) m.set(r.day, m.get(r.day)+ +r.sales);
+  return [...m.entries()];
+}
+const userById = id => S.data.users.find(u=>u.id===id);
+const productById = id => S.data.products.find(p=>p.id===id);
+
+/* ---------- shell ---------- */
+function render(){
+  const nWait = isMgr() ? S.data.users.filter(u=>u.pending).length : 0;
+  const tabs = isMgr() ? [['overview','Overview'],['creators', nWait ? `Creators <span class="badge">${nWait}</span>` : 'Creators'],['links','Tracking links'],['settings','Settings']] : [['overview','My sales'],['links','My links']];
+  app.innerHTML = `${DEMO ? `<div class="demo-banner">Preview with example data. Numbers and names are not real.</div>`:''}
+  <header class="top">
+    <div class="logo"><span class="logo-mark"></span></div>
+    <div class="crumb"><b>${esc(CFG.appName)}</b><span class="pill">${isMgr()?'Manager':'Creator'}</span></div>
+    <div class="me"><span class="avatar">${esc(S.me.display_name[0]?.toUpperCase())}</span><span>${esc(S.me.display_name)}</span><button class="btn small" id="logout">Sign out</button></div>
+  </header>
+  <nav class="tabs">${tabs.map(([k,v])=>`<button class="tab ${S.tab===k?'on':''}" data-tab="${k}">${v}</button>`).join('')}</nav>
+  <main id="view"></main>`;
+  app.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { S.tab = b.dataset.tab; history.replaceState(null,'','#'+S.tab); render(); });
+  document.getElementById('logout').onclick = async () => { await DB.logout(); S.me=null; history.replaceState(null,'',location.pathname); DEMO ? renderLogin() : renderHome(); };
+  ({overview:viewOverview, creators:viewCreators, links:viewLinks, settings:viewSettings})[S.tab]();
+}
+
+function rangeSelect(){
+  const opts = [['month','This month'],['last_month','Last month'],['7d','7 days'],['30d','30 days'],['all','All time']];
+  return `<div class="range-wrap"><div class="seg" role="group" aria-label="Date range">${opts.map(([k,v])=>`<button type="button" class="${S.range===k?'on':''}" data-range="${k}" aria-pressed="${S.range===k}">${v}</button>`).join('')}</div><span class="span num">${esc(period(S.range).span)}</span></div>`;
+}
+function bindRange(){ document.querySelectorAll('[data-range]').forEach(b => b.onclick = async () => { if (S.range === b.dataset.range) return; S.range = b.dataset.range; await reload(); }); }
+
+/* ---------- overview ---------- */
+function viewOverview(){
+  const p = period(S.range);
+  const creators = S.data.users.filter(u=>u.role==='creator' && !u.pending);
+  const scopeId = isMgr() ? S.viewCreator : S.me.id;
+  const scopeLinks = linksFor(scopeId);
+  const ids = new Set(scopeLinks.map(l=>l.id));
+  const cur = totals(ids, p.start, p.end), prev = totals(ids, p.prevStart, p.prevEnd);
+  const scopeName = scopeId ? userById(scopeId)?.display_name : null;
+
+  // Share breakdown: by creator (manager, all) or by placement (creator, or manager viewing one creator)
+  let parts;
+  if (isMgr() && !scopeId){
+    parts = creators.map(c => ({name:c.display_name, id:c.id, v: totals(new Set(linksFor(c.id).map(l=>l.id)), p.start, p.end).sales})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+  } else {
+    parts = Object.entries(PLACEMENTS).map(([k,n]) => ({name:n, v: totals(new Set(scopeLinks.filter(l=>l.placement===k).map(l=>l.id)), p.start, p.end).sales})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+  }
+  const top = parts.slice(0,5), rest = parts.slice(5), restV = rest.reduce((s,x)=>s+x.v,0);
+  const segs = top.map((x,i)=>({...x, c:COLORS[i]})).concat(rest.length ? [{name:`${rest.length} more creators`, v:restV, c:'var(--c6)'}] : []);
+
+  const [whole, dec] = cur.sales.toFixed(2).split('.');
+  const d = (a,b,isMoney) => { if (!p.prevStart) return ''; if (!b) return a ? `<span class="delta up">new</span>` : '<span class="faint">·</span>'; const ch = (a-b)/b; return `<span class="delta ${ch>=0?'up':'down'}">${ch>=0?'+':''}${(ch*100).toFixed(0)}%</span>`; };
+
+  document.getElementById('view').innerHTML = `
+  <div class="toolbar">
+    <div class="viewing">${isMgr() ? `${scopeId ? `<button type="button" class="chip-back" id="backAll">← Everyone</button>` : ''}<select id="who" class="who-pick" aria-label="Pick a creator"><option value="">${scopeId ? 'Switch creator' : 'Everyone · pick a creator'}</option>${creators.map(c=>`<option value="${c.id}" ${S.viewCreator===c.id?'selected':''}>${esc(c.display_name)}${c.active?'':' (off)'}</option>`).join('')}</select>` : `<span class="you">Your sales</span>`}</div>
+    ${rangeSelect()}
+  </div>
+  <section class="hero" id="hero">
+    <svg class="chart" id="chart" preserveAspectRatio="none" aria-hidden="true"></svg>
+    <div class="hero-content">
+      <div>
+        <div class="eyebrow">${scopeName && isMgr() ? esc(scopeName)+' · ' : ''}Sales · ${esc(p.label)}${!scopeId && isMgr() ? ` · ${creators.filter(c=>c.active).length} creators` : ''}</div>
+        <div class="big num"><span class="cur">${curSym}</span>${int(+whole)}<span class="dec">.${dec}</span></div>
+        <div class="sub">${p.prevStart ? `<span>${d(cur.sales, prev.sales)} ${esc(p.cmp)} (${money(prev.sales)})</span><span>·</span>` : ''}<span class="num">Amazon data through ${S.data.lastDay ? fmtDay(S.data.lastDay) : 'no sync yet'}</span></div>
+      </div>
+      <div class="stats num">
+        <div class="stats-h">${esc(p.label)}${p.prevStart ? ' · '+esc(p.cmp) : ''}</div>
+        <span class="v">${int(cur.purchases)}</span><span class="d">${d(cur.purchases, prev.purchases)}</span><span class="k">purchases</span>
+        <span class="v">${int(cur.units)}</span><span class="d">${d(cur.units, prev.units)}</span><span class="k">units</span>
+        <span class="v">${int(cur.clicks)}</span><span class="d">${d(cur.clicks, prev.clicks)}</span><span class="k">clicks</span>
+        <span class="v">${pct(cur.conv)}</span><span class="d">${d(cur.conv, prev.conv)}</span><span class="k">conversion</span>
+        ${isMgr() ? `<span class="v brb">${money(cur.brb)}</span><span class="d">${d(cur.brb, prev.brb)}</span><span class="k">brand referral bonus</span>` : ''}
+      </div>
+    </div>
+  </section>
+  <section class="share">
+    <div class="share-h"><span><b>${isMgr() && !scopeId ? 'Who sold it' : 'Where it sold'}</b> &nbsp;share of sales</span>${isMgr() && !scopeId ? `<a href="#creators" id="allCreators">All creators →</a>` : ''}</div>
+    ${segs.length ? `<div class="bar">${segs.map(s=>`<span style="flex:${s.v};background:${s.c}" title="${esc(s.name)}"></span>`).join('')}</div>
+    <div class="legend">${segs.map(s=>`<div><div class="n"><i style="background:${s.c}"></i>${esc(s.name)}</div><div class="m num">${money(s.v)} · ${(s.v/cur.sales*100).toFixed(1)}%</div></div>`).join('')}</div>`
+    : `<div class="bar"></div><p class="note">No attributed sales in this period yet.</p>`}
+  </section>
+  ${isMgr() && !scopeId ? creatorTable(creators, p) : linkTable(scopeLinks, p, isMgr(), 'Links')}
+  `;
+  drawChart(ids, p);
+  bindRange();
+  const who = document.getElementById('who'); if (who) who.onchange = () => { S.viewCreator = who.value; viewOverview(); };
+  const back = document.getElementById('backAll'); if (back) back.onclick = () => { S.viewCreator = ''; viewOverview(); };
+  const ac = document.getElementById('allCreators'); if (ac) ac.onclick = e => { e.preventDefault(); S.tab='creators'; history.replaceState(null,'','#creators'); render(); };
+  document.querySelectorAll('tr[data-creator]').forEach(tr => tr.onclick = () => { S.viewCreator = tr.dataset.creator; viewOverview(); window.scrollTo({top:0,behavior:'smooth'}); });
+  bindLinkActions();
+}
+
+function creatorTable(creators, p){
+  const rows = creators.map(c => { const t = totals(new Set(linksFor(c.id).map(l=>l.id)), p.start, p.end); return {c, t, n: linksFor(c.id).filter(l=>!l.deleted_at).length}; })
+    .filter(r => r.c.active || r.t.sales > 0).sort((a,b)=>b.t.sales-a.t.sales || b.t.clicks-a.t.clicks);
+  return `<section class="panel"><div class="panel-h"><h2>Leaderboard</h2><span class="note" style="margin:0">Click a creator to see only their numbers</span></div>
+  <div class="tbl-wrap"><table><thead><tr><th>#</th><th>Creator</th><th class="r">Sales</th><th class="r">Purchases</th><th class="r">Units</th><th class="r">Clicks</th><th class="r">Conversion</th><th class="r">Bonus</th><th class="r">Links</th></tr></thead>
+  <tbody>${rows.map((r,i)=>`<tr class="click" data-creator="${r.c.id}"><td class="num" style="color:var(--muted)">${i+1}</td><td><div class="who"><span class="dot" style="background:${i<5?COLORS[i]:'var(--c6)'}"></span>${esc(r.c.display_name)} ${r.c.active?'':'<span class="tag off">off</span>'}</div></td>
+  <td class="r num">${money(r.t.sales)}</td><td class="r num">${int(r.t.purchases)}</td><td class="r num">${int(r.t.units)}</td><td class="r num">${int(r.t.clicks)}</td><td class="r num">${pct(r.t.conv)}</td><td class="r num">${money(r.t.brb)}</td><td class="r num">${r.n}</td></tr>`).join('')}</tbody></table>
+  ${rows.length?'':'<div class="empty">No creators yet. Add them in the Creators tab.</div>'}</div></section>`;
+}
+
+function linkTable(links, p, showCreator, title, actions=false){
+  const vis = links.filter(l => !l.deleted_at || totals(new Set([l.id]), p.start, p.end).sales > 0);
+  const rows = vis.map(l => ({l, t: totals(new Set([l.id]), p.start, p.end)})).sort((a,b)=>b.t.sales-a.t.sales || b.t.clicks-a.t.clicks);
+  return `<section class="panel"><div class="panel-h"><h2>${title}</h2><span class="note" style="margin:0">${esc(p.label)}</span></div>
+  <div class="tbl-wrap"><table><thead><tr>${showCreator?'<th>Creator</th>':''}<th>Link</th><th>Where</th><th>Product</th><th class="r">Clicks</th><th class="r">Purchases</th><th class="r">Sales</th><th class="r">Conversion</th>${actions?'<th></th>':''}</tr></thead>
+  <tbody>${rows.map(({l,t})=>`<tr>${showCreator?`<td>${esc(userById(l.creator_id)?.display_name||'')}</td>`:''}
+  <td><div style="display:flex;flex-direction:column;gap:2px"><span>${esc(l.label||'Untitled')}${l.deleted_at?' <span class="tag off">deleted</span>':''}</span><span class="linkurl" style="color:var(--muted);max-width:320px;overflow:hidden;text-overflow:ellipsis">${esc(amazonUrl(l).replace(/^https?:\/\//,''))}</span></div></td>
+  <td><span class="tag ${l.placement}">${PLACEMENTS[l.placement]}</span></td><td>${esc(productById(l.product_id)?.name||'')}</td>
+  <td class="r num">${int(t.clicks)}</td><td class="r num">${int(t.purchases)}</td><td class="r num">${money(t.sales)}</td><td class="r num">${pct(t.conv)}</td>
+  ${actions?`<td class="r">${l.deleted_at?'':`<span class="inline-confirm"><button class="btn small" data-copy="${esc(amazonUrl(l))}">Copy Amazon link</button><button class="btn small danger" data-del="${l.id}">Delete</button></span>`}</td>`:''}</tr>`).join('')}</tbody></table>
+  ${rows.length?'':`<div class="empty">${isMgr()?'No links yet. Creators make their own in Tracking links.':'No links yet. Make your first one in My links.'}</div>`}</div></section>`;
+}
+
+function bindLinkActions(){
+  document.querySelectorAll('[data-copy]').forEach(b => b.onclick = e => { e.stopPropagation(); copy(b.dataset.copy, b); });
+  document.querySelectorAll('[data-del]').forEach(b => b.onclick = e => {
+    e.stopPropagation(); const wrap = b.parentElement;
+    wrap.innerHTML = `<span class="note" style="margin:0">Delete?</span><button class="btn small danger" data-yes>Yes</button><button class="btn small" data-no>No</button>`;
+    wrap.querySelector('[data-no]').onclick = ev => { ev.stopPropagation(); render(); };
+    wrap.querySelector('[data-yes]').onclick = async ev => { ev.stopPropagation(); try { await DB.deleteLink(b.dataset.del); toast('Link deleted. Old posts still work and still count.'); await reload(); } catch(x){ toast(x.message); } };
+  });
+}
+
+function drawChart(ids, p){
+  const svg = document.getElementById('chart'), hero = document.getElementById('hero'); if(!svg) return;
+  const W = 1000, H = 400, top = 60, bottom = 40;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const cur = dailySales(ids, p.start, p.end);
+  const prev = p.prevStart ? dailySales(ids, p.prevStart, p.prevEnd) : [];
+  const cum = a => { let s=0; return a.map(([d,v])=>[d, s+=v, v]); };
+  const c = cum(cur), pv = cum(prev);
+  const n = Math.max(c.length, pv.length, 2);
+  const max = Math.max(1, ...c.map(x=>x[1]), ...pv.map(x=>x[1])) * 1.08;
+  const X = i => (i/(n-1))*W, Y = v => H - bottom - (v/max)*(H-top-bottom);
+  const path = a => a.map((x,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(x[1]).toFixed(1)}`).join('');
+  let out = '';
+  if (pv.length) out += `<path d="${path(pv)}" fill="none" stroke="var(--faint)" stroke-width="1.5" stroke-dasharray="3 5" vector-effect="non-scaling-stroke"/>`;
+  if (c.length){
+    out += `<path d="${path(c)}L${X(c.length-1)},${H}L0,${H}Z" fill="var(--chart-fill)"/>`;
+    out += `<path class="line" d="${path(c)}" fill="none" stroke="var(--chart)" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>`;
+  }
+  out += `<line x1="0" x2="${W}" y1="${Y(max/1.08)}" y2="${Y(max/1.08)}" stroke="var(--line)" stroke-dasharray="4 6" vector-effect="non-scaling-stroke"/>`;
+  out += `<g id="hits">${c.map((x,i)=>`<rect x="${X(i)-W/n/2}" y="0" width="${W/n}" height="${H}" fill="transparent" data-i="${i}"/>`).join('')}</g>`;
+  out += `<circle id="hov" r="5" fill="var(--chart)" stroke="var(--bg)" stroke-width="2" style="display:none"/>`;
+  svg.innerHTML = out;
+  let tip;
+  svg.querySelectorAll('#hits rect').forEach(r => {
+    r.onmouseenter = () => {
+      const i = +r.dataset.i, [day, total, v] = c[i];
+      const rect = svg.getBoundingClientRect(), hr = hero.getBoundingClientRect();
+      const px = X(i)/W*rect.width, py = Y(total)/H*rect.height;
+      if (!tip){ tip = document.createElement('div'); tip.className='tip num'; hero.appendChild(tip); }
+      tip.style.left = Math.min(Math.max(px, 80), rect.width-80)+'px'; tip.style.top = py+'px';
+      tip.innerHTML = `${fmtDay(day)} · ${money(v)} that day<br><span style="color:var(--muted)">${money(total)} so far</span>`;
+      const h = svg.querySelector('#hov');
+      h.setAttribute('cx', X(i)); h.setAttribute('cy', Y(total)); h.style.display='';
+    };
+  });
+  svg.onmouseleave = () => { tip?.remove(); tip=null; svg.querySelector('#hov').style.display='none'; };
+}
+
+/* ---------- links ---------- */
+function viewLinks(){
+  const p = period(S.range);
+  const products = S.data.products.filter(x=>x.active);
+  const mine = isMgr() ? S.data.links : linksFor(S.me.id);
+  const newLink = S.lastLink ? amazonUrl(S.lastLink) : null;
+  document.getElementById('view').innerHTML = `
+  <div class="toolbar"><div class="viewing">${isMgr() ? 'Every tracking link your creators have made' : 'Make one link for every account and every spot you post it. Same account, bio and ManyChat? That\'s two links.'}</div>${rangeSelect()}</div>
+  ${!isMgr() ? `<section class="panel" style="margin-top:0"><div class="panel-h"><h2>New tracking link</h2></div><div class="panel-b">
+    ${products.length ? `<form id="linkForm" class="form-row">
+      ${products.length===1 ? `<input type="hidden" id="lp" value="${products[0].id}">` : `<div class="field"><label for="lp">Product</label><select id="lp">${products.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select></div>`}
+      <div class="field"><label for="lw">Where it goes</label><select id="lw">${Object.entries(PLACEMENTS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></div>
+      <div class="field"><label for="ll">Which account is this link going on?</label><input id="ll" required placeholder="e.g. @frankie.dogs TikTok" maxlength="60"></div>
+      <button class="btn primary">Create link</button></form>
+      ${newLink ? `<div class="new-link"><span class="linkurl">${esc(newLink)}</span><button class="btn small" data-copy="${esc(newLink)}">Copy</button><span class="note" style="margin:0">This is your Amazon link. Put it exactly where you said. Clicks and sales show on your dashboard once Amazon reports them, usually within a day or two.</span></div>` : ''}`
+    : `<p class="note">No products are set up yet. Ask your manager.</p>`}
+  </div></section>` : ''}
+  ${linkTable(mine, p, isMgr(), isMgr() ? 'All links' : 'Your links', true)}`;
+  bindRange(); bindLinkActions();
+  const f = document.getElementById('linkForm');
+  if (f) f.onsubmit = async e => { e.preventDefault(); const b = f.querySelector('button'); b.disabled = true;
+    try { S.lastLink = await DB.createLink({creator_id:S.me.id, product_id:f.lp.value, placement:f.lw.value, label:f.ll.value.trim()}); toast('Link created'); await reload(); }
+    catch(x){ toast(x.message); b.disabled = false; } };
+}
+
+/* ---------- creators (manager) ---------- */
+function viewCreators(){
+  const p = period(S.range);
+  const users = S.data.users.filter(u=>!u.pending);
+  const waiting = S.data.users.filter(u=>u.pending);
+  document.getElementById('view').innerHTML = `
+  <div class="toolbar"><div class="viewing">Creators sign in with Discord and get straight in. Use Switch off to remove someone.</div>${rangeSelect()}</div>
+  ${waiting.length ? `<section class="panel" style="margin-top:0;border-color:var(--warn)"><div class="panel-h"><h2>Waiting for approval · ${waiting.length}</h2></div><div class="tbl-wrap"><table><tbody>
+    ${waiting.map(u=>`<tr><td><div class="who">${u.avatar_url?`<img src="${esc(u.avatar_url)}" alt="" width="24" height="24" style="border-radius:50%">`:''}${esc(u.display_name)}</div></td><td class="num" style="color:var(--muted)">${esc(u.username)}</td>
+    <td class="r"><button class="btn small primary" data-act="${u.id}" data-on="1">Approve</button> <button class="btn small danger" data-reject="${u.id}">Remove</button></td></tr>`).join('')}
+  </tbody></table></div></section>` : ''}
+  <section class="panel" ${waiting.length?'':'style="margin-top:0"'}><div class="panel-h"><h2>Everyone</h2></div><div class="tbl-wrap"><table>
+  <thead><tr><th>Name</th><th>Discord</th><th>Role</th><th class="r">Links</th><th class="r">Sales · ${esc(p.label.toLowerCase())}</th><th></th></tr></thead>
+  <tbody>${users.map(u=>{ const t = totals(new Set(linksFor(u.id).map(l=>l.id)), p.start, p.end);
+    return `<tr><td>${esc(u.display_name)} ${u.active?'':'<span class="tag off">off</span>'}</td><td class="num">${esc(u.username)}</td><td>${u.role==='manager'?'Manager':'Creator'}</td>
+    <td class="r num">${linksFor(u.id).filter(l=>!l.deleted_at).length}</td><td class="r num">${u.role==='creator'?money(t.sales):''}</td>
+    <td class="r"><span class="inline-confirm" data-uid="${u.id}">
+      ${u.role==='creator'?`<button class="btn small" data-view="${u.id}">View sales</button>`:''}
+      ${u.id!==S.me.id?`<button class="btn small" data-role="${u.id}" data-to="${u.role==='manager'?'creator':'manager'}">${u.role==='manager'?'Make creator':'Make manager'}</button>`:''}
+      ${u.id!==S.me.id?`<button class="btn small ${u.active?'danger':''}" data-act="${u.id}" data-on="${u.active?0:1}">${u.active?'Switch off':'Switch on'}</button>`:''}
+    </span></td></tr>`; }).join('')}</tbody></table></div></section>`;
+  bindRange();
+  const f = null; if (f) f.onsubmit = async e => { e.preventDefault(); const b = f.querySelector('button'); b.disabled = true;
+    try { await DB.api('/api/users', {action:'create', display_name:f.ud.value, username:f.uu.value, password:f.up.value, role:f.ur.value}); toast(`Login added for ${f.ud.value}`); await reload(); }
+    catch(x){ toast(x.message); b.disabled = false; } };
+  document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { S.viewCreator = b.dataset.view; S.tab='overview'; history.replaceState(null,'','#overview'); render(); });
+  document.querySelectorAll('[data-act]').forEach(b => b.onclick = async () => { try { await DB.api('/api/users',{action:'set_active', id:b.dataset.act, active: b.dataset.on==='1'}); toast(b.dataset.on==='1'?'Approved, they can sign in now':'Switched off. They can no longer sign in.'); await reload(); } catch(x){ toast(x.message); } });
+  document.querySelectorAll('[data-role]').forEach(b => b.onclick = async () => { try { await DB.api('/api/users',{action:'set_role', id:b.dataset.role, role:b.dataset.to}); toast(b.dataset.to==='manager'?'Now a manager: they see everything':'Now a creator'); await reload(); } catch(x){ toast(x.message); } });
+  document.querySelectorAll('[data-reject]').forEach(b => b.onclick = async () => { try { await DB.api('/api/users',{action:'reject', id:b.dataset.reject}); toast('Removed'); await reload(); } catch(x){ toast(x.message); } });
+  document.querySelectorAll('[data-pw]').forEach(b => b.onclick = () => {
+    const wrap = b.parentElement; wrap.innerHTML = `<input type="text" placeholder="New password" style="width:150px;padding:5px 8px" minlength="8"><button class="btn small primary">Save</button><button class="btn small">Cancel</button>`;
+    const [inp, save, cancel] = wrap.children; inp.focus(); cancel.onclick = () => viewCreators();
+    save.onclick = async () => { try { await DB.api('/api/users',{action:'reset_password', id:b.dataset.pw, password:inp.value}); toast('Password changed'); viewCreators(); } catch(x){ toast(x.message); } };
+  });
+}
+
+/* ---------- settings (manager) ---------- */
+async function viewSettings(){
+  const v = document.getElementById('view');
+  v.innerHTML = `<div class="grid2">
+  <section class="panel"><div class="panel-h"><h2>Amazon connection</h2><span id="amzStatus" class="status no">Checking</span></div><div class="panel-b" id="amzBody"><p class="note">Loading</p></div></section>
+  <section class="panel"><div class="panel-h"><h2>Import sales from a file</h2></div><div class="panel-b">
+    <p class="note" style="margin-top:0">Use this if the Amazon connection isn't approved yet. Export a report from Amazon Attribution grouped by creative, save as CSV. Columns needed: <span class="num">creative</span> (the link code), <span class="num">date</span> (or pick the date below), <span class="num">purchases</span>, <span class="num">units</span>, <span class="num">sales</span>. Optional: <span class="num">brb</span>, <span class="num">clicks</span>.</p>
+    <div class="form-row" style="margin-top:12px"><div class="field"><label for="csv">Report file (CSV)</label><input type="file" id="csv" accept=".csv,text/csv"></div><div class="field"><label for="csvDay">Report date (only if the file has no date column)</label><input type="date" id="csvDay"></div><button class="btn primary" id="csvGo">Import</button></div>
+    <p class="note" id="csvMsg"></p>
+  </div></section></div>
+  <section class="panel"><div class="panel-h"><h2>Products</h2><span class="note" style="margin:0">What creators can link to</span></div><div class="panel-b">
+    <form id="prodForm" class="form-row">
+      <div class="field"><label for="pn">Product name</label><input id="pn" required placeholder="Hip & Joint Chews"></div>
+      <div class="field"><label for="pa">ASIN</label><input id="pa" placeholder="B0..."></div>
+      <div class="field" style="grid-column:span 2"><label for="pt">Amazon Attribution tag link (UK)</label><input id="pt" required type="url" placeholder="https://www.amazon.co.uk/dp/...?maas=..."></div>
+      <button class="btn primary">Add product</button>
+    </form>
+    <p class="note">Get the tag link from Amazon Ads console > Measurement > Amazon Attribution > create a campaign for this product > copy the tag. The tracker adds each creator's own ids onto it.</p>
+  </div>
+  <div class="tbl-wrap"><table><thead><tr><th>Product</th><th>ASIN</th><th>Tag link</th><th>Status</th><th></th></tr></thead><tbody>
+  ${S.data.products.map(x=>`<tr><td>${esc(x.name)}</td><td class="num">${esc(x.asin||'')}</td><td class="linkurl" style="max-width:340px;overflow:hidden;text-overflow:ellipsis">${esc(x.tag_url)}</td>
+  <td>${x.active?'<span class="tag bio">Live</span>':'<span class="tag off">Hidden</span>'}</td>
+  <td class="r"><button class="btn small" data-tagedit="${x.id}">Change tag</button> <button class="btn small" data-ptoggle="${x.id}" data-on="${x.active?0:1}">${x.active?'Hide':'Show'}</button></td></tr>`).join('')}
+  </tbody></table>${S.data.products.length?'':'<div class="empty">No products yet. Add your first one above.</div>'}</div></section>`;
+
+  document.getElementById('prodForm').onsubmit = async e => { e.preventDefault(); const f = e.target;
+    try { new URL(f.pt.value); await DB.addProduct({name:f.pn.value.trim(), asin:f.pa.value.trim()||null, tag_url:f.pt.value.trim()}); toast('Product added'); await reload(); } catch(x){ toast(x.message); } };
+  v.querySelectorAll('[data-ptoggle]').forEach(b => b.onclick = async () => { await DB.updateProduct(b.dataset.ptoggle, {active: b.dataset.on==='1'}); await reload(); });
+  v.querySelectorAll('[data-tagedit]').forEach(b => b.onclick = () => { const td = b.closest('tr').children[2];
+    td.innerHTML = `<div style="display:flex;gap:6px"><input type="url" value="${esc(productById(b.dataset.tagedit).tag_url)}" style="padding:5px 8px"><button class="btn small primary">Save</button></div>`;
+    td.querySelector('button').onclick = async () => { try { const u = td.querySelector('input').value.trim(); new URL(u); await DB.updateProduct(b.dataset.tagedit,{tag_url:u}); toast('Tag link saved'); await reload(); } catch(x){ toast(x.message); } }; });
+
+  document.getElementById('csvGo').onclick = async () => {
+    const file = document.getElementById('csv').files[0], msg = document.getElementById('csvMsg');
+    if (!file) return msg.textContent = 'Pick a CSV file first.';
+    try { const rows = parseCsv(await file.text(), document.getElementById('csvDay').value); await DB.importSales(rows.ok); msg.textContent = `Imported ${rows.ok.length} rows.${rows.skipped ? ` Skipped ${rows.skipped} rows that aren't tracker links.` : ''}`; await reload(); }
+    catch(x){ msg.textContent = x.message; }
+  };
+
+  // Amazon status
+  try {
+    const st = await DB.api('/api/amazon-status'); const log = await DB.syncLog();
+    const s = document.getElementById('amzStatus'), body = document.getElementById('amzBody'); if (!s) return;
+    s.className = 'status ' + (st.connected ? 'ok' : 'no'); s.textContent = st.connected ? 'Connected' : st.keysSet ? 'Not connected' : 'Keys missing';
+    body.innerHTML = `${st.connected ? `<p style="margin-top:0">Account: <b>${esc(st.profile?.name || st.profile?.id)}</b> (${esc(st.profile?.country||'')}) · ${st.advertiserCount} Attribution advertiser${st.advertiserCount===1?'':'s'}<br><span class="note">Last sync: ${st.lastSync ? new Date(st.lastSync.at).toLocaleString('en-GB') : 'never'}. Syncs itself every morning.</span></p>`
+      : st.keysSet ? `<p style="margin-top:0">Your Amazon keys are in. Press Connect, sign in with the MyCompanion Amazon Ads login and allow access.</p>`
+      : `<p style="margin-top:0">Add <span class="num">AMAZON_CLIENT_ID</span> and <span class="num">AMAZON_CLIENT_SECRET</span> in Vercel once Amazon approves your API access, then redeploy.</p>`}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button class="btn ${st.connected?'':'primary'}" id="amzConnect" ${st.keysSet?'':'disabled'}>${st.connected?'Reconnect Amazon':'Connect Amazon'}</button><button class="btn" id="amzSync" ${st.connected?'':'disabled'}>Sync now</button></div>
+      <div class="log">${log.map(l=>`<div class="${l.status==='ok'?'':'e'}">${new Date(l.ran_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} · ${esc(l.detail)}</div>`).join('') || '<div>No syncs yet</div>'}</div>`;
+    document.getElementById('amzConnect').onclick = async () => { try { const {url} = await DB.api('/api/amazon-connect', {}); location.href = url; } catch(x){ toast(x.message); } };
+    document.getElementById('amzSync').onclick = async e => { e.target.disabled = true; e.target.textContent = 'Syncing'; try { const r = await DB.api('/api/sync', {}); toast(`Synced ${r.rows} link-days`); await reload(); } catch(x){ toast(x.message); render(); } };
+  } catch(x){ const s = document.getElementById('amzBody'); if (s) s.innerHTML = `<p class="err">${esc(x.message)}</p>`; }
+}
+
+function parseCsv(text, fallbackDay){
+  const lines = text.replace(/\r/g,'').split('\n').filter(l=>l.trim());
+  const split = l => { const out=[]; let cur='', q=false; for (const ch of l){ if(ch==='"'){ q=!q; } else if(ch===',' && !q){ out.push(cur); cur=''; } else cur+=ch; } out.push(cur); return out.map(s=>s.trim()); };
+  const head = split(lines[0]).map(h=>h.toLowerCase().replace(/[^a-z]/g,''));
+  const col = (...names) => head.findIndex(h => names.some(n => h.includes(n)));
+  const ic = col('creative','linkcode','code'), id = col('date','day'), ip = col('purchase'), iu = col('unit'), is = col('sales','revenue'), ib = col('brb','bonus'), ik = col('click');
+  if (ic<0 || is<0) throw new Error('The file needs a creative column (the link code) and a sales column.');
+  if (id<0 && !fallbackDay) throw new Error('This file has no date column. Pick the report date next to the file, then import again.');
+  const byCode = new Map(S.data.links.map(l=>[l.code.toLowerCase(), l.id]));
+  const toDay = s => { s = s.replace(/"/g,''); if (/^\d{8}$/.test(s)) return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6)}`; if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)){ const [d,m,y]=s.split('/'); return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`; } return s.slice(0,10); };
+  const n = v => Number(String(v||'0').replace(/[^0-9.\-]/g,'')) || 0;
+  const ok=[]; let skipped=0;
+  for (const l of lines.slice(1)){ const c = split(l); const linkId = byCode.get((c[ic]||'').toLowerCase()); if(!linkId){ skipped++; continue; }
+    ok.push({link_id:linkId, day: id>=0 ? toDay(c[id]) : fallbackDay, purchases: ip>=0?n(c[ip]):0, units: iu>=0?n(c[iu]):0, sales:n(c[is]), brb: ib>=0?n(c[ib]):0, amazon_clicks: ik>=0?n(c[ik]):0}); }
+  return {ok, skipped};
+}
+
+// Header links (#privacy, #signin, back to /) are plain hash changes; re-route on them when not inside the app.
+window.addEventListener('hashchange', () => { if (!S.me || PUBLIC_PAGES.includes(route())) boot(); });
+boot();
+})();
+</script>
+</body>
+</html>
